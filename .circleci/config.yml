@@ -33,3 +33,31 @@ jobs:
           prefix: coverage
       - store_test_results:
           path: test-results.xml
+  deploy:
+    docker:
+      - image: circleci/node:4.8.2
+    working_directory: ~/mern-starter
+    steps:
+      - checkout
+      - add_ssh_keys:  # add key from CircleCI account based on fingerprint
+          fingerprints:
+            - "a9:42:f2:da:70:30:8e:b1:09:22:cb:cb:ff:f6:30:e6"
+      - run:
+          name: Run Setup Script
+          command: bash .circleci/setup-heroku.sh
+      - run:
+          name: Deploy Master to Heroku
+          command: |  # this command is framework-dependent and may vary
+            heroku git:remote -a $HEROKU_APP_NAME
+            git push --force git@heroku.com:$HEROKU_APP_NAME.git HEAD:refs/heads/master
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
+      - deploy:  # only deploy when master successfully builds
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
