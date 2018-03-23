@@ -1,9 +1,6 @@
 version: 2
 jobs:
   build:
-    branches:
-      - master
-      - staging
     working_directory: ~/mern-starter
     docker:
       - image: circleci/node:4.8.2
@@ -37,9 +34,6 @@ jobs:
       - store_test_results:
           path: test-results.xml
   deploy:
-    branches:
-      - master
-      - staging
     docker:
       - image: circleci/node:4.8.2
     working_directory: ~/mern-starter
@@ -67,9 +61,11 @@ workflows:
   build-deploy:
     jobs:
       - build
-      - deploy:  # only deploy when master successfully builds
-          requires:
-            - build
           filters:
             branches:
-              only: master
+              only:
+                - master
+                - staging
+      - deploy:  # only deploy when successfully builds
+          requires:
+            - build
