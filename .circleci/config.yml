@@ -1,6 +1,9 @@
 version: 2
 jobs:
   build:
+    branches:
+      - master
+      - staging
     working_directory: ~/mern-starter
     docker:
       - image: circleci/node:4.8.2
@@ -34,6 +37,9 @@ jobs:
       - store_test_results:
           path: test-results.xml
   deploy:
+    branches:
+      - master
+      - staging
     docker:
       - image: circleci/node:4.8.2
     working_directory: ~/mern-starter
@@ -48,8 +54,14 @@ jobs:
       - run:
           name: Deploy Master to Heroku
           command: |  # this command is framework-dependent and may vary
-            heroku git:remote -a $HEROKU_APP_NAME
-            git push --force git@heroku.com:$HEROKU_APP_NAME.git HEAD:refs/heads/master
+            if [ $CIRCLE_BRANCH == 'master' ]
+            then
+              heroku git:remote -a $HEROKU_APP_NAME
+              git push --force git@heroku.com:$HEROKU_APP_NAME.git HEAD:refs/heads/master
+            else
+              heroku git:remote -a $HEROKU_APP_STAGING_NAME
+              git push --force git@heroku.com:$HEROKU_APP_STAGING_NAME.git HEAD:refs/heads/master
+            fi
 workflows:
   version: 2
   build-deploy:
